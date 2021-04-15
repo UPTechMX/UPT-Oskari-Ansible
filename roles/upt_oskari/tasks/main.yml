@@ -1,8 +1,8 @@
 ---
 - name: Installing nginx
-      apt:
-        name: nginx
-        state: latest
+  apt:
+    name: nginx
+    state: latest
 
 - name: Starting nginx
   service:
