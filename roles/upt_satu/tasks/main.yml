@@ -1,4 +1,17 @@
 ---
+- name: Backup `oskari-ext.properties` Oskari settings file if backup file `oskari-ext.properties.orig` does not exist
+  shell: "cp {{ install_dir_oskari }}/oskari-server/resources/oskari-ext.properties {{ install_dir_oskari }}/oskari-server/resources/oskari-ext.properties.orig"
+  args:
+    creates: "{{ install_dir_oskari }}/oskari-server/resources/oskari-ext.properties.orig"
+
+- name: Copy `oskari-ext.properties` settings file for Oskari from template
+  template:
+    src: ../templates/oskari-ext.properties.j2
+    dest: "{{ install_dir_oskari }}/oskari-server/resources/oskari-ext.properties"
+    owner: root
+    group: root
+    mode: 0644
+    
 - name: Cloning UPT-GUI repository
   git: 
     #repo: https://{{ gituser | urlencode }}:{{ gitpassword | urlencode }}@github.com/miguel-capsus/UPT-UrbanPerformance.git
