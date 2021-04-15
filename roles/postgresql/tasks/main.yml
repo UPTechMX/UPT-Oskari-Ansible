@@ -1,0 +1,96 @@
+---
+## getting apt cache update failed error with apt_repository, workaround => copy repo list file from template
+##- name: Add PostgreSQL repo to sources list
+##  apt_repository:
+##    repo: deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main
+##    state: present
+
+- name: Copy PostgreSQL repo list file from template
+  copy:
+    src: ../templates/pgdg.list.j2
+    dest: /etc/apt/sources.list.d/pgdg.list
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Import key for PostgreSQL repo
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Update apt package cache
+  apt:
+    update_cache: yes
+
+- name: "Install PostgreSQL {{ postgresql_version }} and PostGIS {{ postgis_version }} packages"
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - "postgresql-{{ postgresql_version }}"
+   - "postgresql-contrib-{{ postgresql_version }}"
+   - "postgresql-{{ postgresql_version }}-postgis-{{ postgis_version }}"
+   - postgis
+   - libpq-dev
+   - python-psycopg2
+
+- name: Check if `pg_hba.conf` and `postgresql.conf` backups have been created
+  stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ postgresql_conf_path }}/pg_hba.conf.orig"
+    - "{{ postgresql_conf_path }}/postgresql.conf.orig"
+  register: postgresql_backup_files_stat
+
+- name: Backup `pg_hba.conf` `and postgresql.conf` if backup files do not exist
+  become: true
+  become_user: postgres
+  become_method: sudo
+  shell: "cp {{ item }}"
+  args:
+    executable: /bin/bash
+  with_items:
+    - "{{ postgresql_conf_path }}/pg_hba.conf {{ postgresql_conf_path }}/pg_hba.conf.orig"
+    - "{{ postgresql_conf_path }}/postgresql.conf {{ postgresql_conf_path }}/postgresql.conf.orig"
+  when: postgresql_backup_files_stat.results | rejectattr('stat.exists') | list
+
+- name: Enable password authentication (local all all md5)
+  postgresql_pg_hba:
+    dest: "{{ postgresql_conf_path }}/pg_hba.conf"
+    contype: local
+    databases: all
+    users: all
+    method: md5
+
+- name: Enable password authentication (host all all 127.0.0.1/32 md5)
+  postgresql_pg_hba:
+    dest: "{{ postgresql_conf_path }}/pg_hba.conf"
+    contype: host
+    databases: all
+    users: all
+    source: 127.0.0.1/32
+    method: md5
+
+- name: Configure PostgreSQL to listen on all IP interfaces
+  lineinfile:
+    path: "{{ postgresql_conf_path }}/postgresql.conf"
+    line: listen_addresses = '*'
+
+- name: "Change postgres user password using `postgres_user_password` variable"
+  become: true
+  become_user: postgres
+  become_method: sudo
+  shell: psql -U postgres -c "ALTER USER postgres with password '{{ postgres_user_password }}';"
+  args:
+    executable: /bin/bash
+  ## also works with command below instead of shell and args
+  ##command: psql -U postgres -c "ALTER USER postgres with password '{{ postgres_user_password }}';"
+  ## notify only fires if task returns changed state
+  notify: restart postgresql
+
+## use notify to restart postgresql instead
+##- name: Restart PostgreSQL
+##  systemd:
+##    state: restarted
+##    daemon_reload: yes
+##    name: postgresql

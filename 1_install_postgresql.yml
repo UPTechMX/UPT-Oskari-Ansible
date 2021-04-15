@@ -1,0 +1,10 @@
+---
+- name: "Install PostgreSQL {{ postgresql_version }} with PostGIS {{ postgis_version }}"
+  hosts: all
+  become: true
+  
+  vars_files:
+    - vars_postgresql.yml
+
+  roles:
+    - postgresql
