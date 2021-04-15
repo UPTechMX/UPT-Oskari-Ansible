@@ -1,0 +1,13 @@
+[Unit]
+Description=Jetty
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory={{ install_dir_oskari }}/oskari-server
+ExecStart=/usr/bin/java -jar ../jetty-distribution-9.4.12.v20180830/start.jar
+ExecStop=/bin/kill ${MAINPID}
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+---
+- name: "Setup tools for Oskari development"
+  hosts: all
+  become: true
+
+  vars_files:
+    - vars_oskari.yml
+
+  roles:
+    - oskari_development

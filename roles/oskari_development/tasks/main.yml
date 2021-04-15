@@ -1,0 +1,27 @@
+---
+- name: Update apt package cache
+  apt:
+    update_cache: yes
+
+- name: Enable Node `{{ oskari_development_node_version }}.x` LTS repository
+  shell: |
+    curl -sL https://deb.nodesource.com/setup_{{ oskari_development_node_version|quote }}.x | sudo -E bash -
+  args:
+    warn: false
+
+- name: Install Oskari development prerequisite packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - openjdk-8-jdk
+   - maven
+   - nodejs
+
+- name: Install Angular for UPT-GUI
+  shell: sudo npm install -g @angular/cli
+
+- name: Set JAVA_HOME environment variable
+  lineinfile:
+    path: /etc/environment
+    line: JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64

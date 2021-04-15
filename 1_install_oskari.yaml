@@ -1,0 +1,10 @@
+---
+- name: "Install Oskari {{ oskari_version }} and configure separate GeoServer running on port {{ geoserver_port }}"
+  hosts: all
+  become: true
+
+  vars_files:
+    - vars_oskari.yml
+
+  roles:
+    - oskari

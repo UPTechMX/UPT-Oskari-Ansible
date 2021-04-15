@@ -1,0 +1,354 @@
+---
+- name: Update apt package cache
+  apt:
+    update_cache: yes
+
+- name: Install the `openjdk-8-jdk` package for Oskari
+  package:
+    name: openjdk-8-jdk
+    state: latest
+
+- name: Set `JAVA_HOME` environment variable
+  lineinfile:
+    dest: /etc/environment
+    line: JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+    state: present
+
+- name: Install Oskari prerequisite packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - unzip
+   - redis-server
+
+- name: "Check if `{{ oskari_jetty_bundle_archive }}` is already downloaded in `{{ working_dir }}`"
+  stat:
+    path: "{{ working_dir }}/{{ oskari_jetty_bundle_archive }}"
+  register: oskari_jetty_bundle_archive_stat
+
+- name: "Download Oskari from `{{ oskari_jetty_bundle_archive_url }}` to `{{ working_dir }}` (only if `{{ working_dir }}/{{ oskari_jetty_bundle_archive }}` file does not exist)"
+  get_url:
+    url: "{{ oskari_jetty_bundle_archive_url }}"
+    dest: "{{ working_dir }}/{{ oskari_jetty_bundle_archive }}"
+    force: false
+    mode: 0644
+  when: oskari_jetty_bundle_archive_stat.stat.exists == false
+
+- name: "Ensure `{{ install_dir_oskari }}` exists"
+  file:
+    path: "{{ install_dir_oskari }}"
+    state: directory
+
+- name: "Extract `{{ oskari_jetty_bundle_archive }}` to `{{ install_dir_oskari }}`"
+  unarchive:
+    src: "{{ working_dir }}/{{ oskari_jetty_bundle_archive }}"
+    dest: "{{ install_dir_oskari }}"
+    creates: "{{ install_dir_oskari }}/oskari-server"
+
+- name: Backup `oskari-ext.properties` Oskari settings file if backup file `oskari-ext.properties.orig` does not exist
+  shell: "cp {{ install_dir_oskari }}/oskari-server/resources/oskari-ext.properties {{ install_dir_oskari }}/oskari-server/resources/oskari-ext.properties.orig"
+  args:
+    creates: "{{ install_dir_oskari }}/oskari-server/resources/oskari-ext.properties.orig"
+
+- name: Backup `start.ini` Jetty settings file if backup file `start.ini.orig` does not exist
+  shell: "cp {{ install_dir_oskari }}/jetty-distribution-9.4.12.v20180830/start.ini {{ install_dir_oskari }}/jetty-distribution-9.4.12.v20180830/start.ini.orig"
+  args:
+    creates: "{{ install_dir_oskari }}/jetty-distribution-9.4.12.v20180830/start.ini.orig"
+
+- name: Backup `oskari_lang_id.js` file in `geoportal` if backup file `oskari_lang_id.js.orig` does not exist
+  shell: "cp {{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal/oskari_lang_id.js {{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal/oskari_lang_id.js.orig"
+  args:
+    creates: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal/oskari_lang_id.js.orig"
+
+- name: Backup `oskari_lang_id.js` file in `geoportal-3d` if backup file `oskari_lang_id.js.orig` does not exist
+  shell: "cp {{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal-3d/oskari_lang_id.js {{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal-3d/oskari_lang_id.js.orig"
+  args:
+    creates: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal-3d/oskari_lang_id.js.orig"
+
+- name: Backup `oskari_lang_id.js` file in `embedded` if backup file `oskari_lang_id.js.orig` does not exist
+  shell: "cp {{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded/oskari_lang_id.js {{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded/oskari_lang_id.js.orig"
+  args:
+    creates: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded/oskari_lang_id.js.orig"
+
+- name: Backup `oskari_lang_id.js` file in `embedded-3d` if backup file `oskari_lang_id.js.orig` does not exist
+  shell: "cp {{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded-3d/oskari_lang_id.js {{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded-3d/oskari_lang_id.js.orig"
+  args:
+    creates: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded-3d/oskari_lang_id.js.orig"
+
+- name: Backup `userguide.html` file if backup file `userguide.html.orig` does not exist
+  shell: "cp {{ install_dir_oskari }}/oskari-server/resources/articlesByTag/userguide.html {{ install_dir_oskari }}/oskari-server/resources/articlesByTag/userguide.html.orig"
+  args:
+    creates: "{{ install_dir_oskari }}/oskari-server/resources/articlesByTag/userguide.html.orig"
+
+- name: Copy `oskari-ext.properties` settings file for Oskari from template
+  template:
+    src: ../templates/oskari-ext.properties.j2
+    dest: "{{ install_dir_oskari }}/oskari-server/resources/oskari-ext.properties"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `start.ini` settings file for Jetty from template
+  template:
+    src: ../templates/start.ini.j2
+    dest: "{{ install_dir_oskari }}/jetty-distribution-9.4.12.v20180830/start.ini"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `oskari_lang_id.js` file for Oskari from template for `geoportal`
+  copy:
+    src: ../templates/oskari_lang_id.js
+    dest: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal/oskari_lang_id.js"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `oskari_lang_in.js` file for Oskari from template for `geoportal`
+  copy:
+    src: ../templates/oskari_lang_in.js
+    dest: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal/oskari_lang_in.js"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `oskari_lang_id.js` file for Oskari from template for `geoportal-3d`
+  copy:
+    src: ../templates/oskari_lang_id.js
+    dest: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal-3d/oskari_lang_id.js"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `oskari_lang_in.js` file for Oskari from template for `geoportal-3d`
+  copy:
+    src: ../templates/oskari_lang_in.js
+    dest: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/geoportal-3d/oskari_lang_in.js"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `oskari_lang_id.js` file for Oskari from template for `embedded`
+  copy:
+    src: ../templates/oskari_lang_id.js
+    dest: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded/oskari_lang_id.js"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `oskari_lang_in.js` file for Oskari from template for `embedded`
+  copy:
+    src: ../templates/oskari_lang_in.js
+    dest: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded/oskari_lang_in.js"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `oskari_lang_id.js` file for Oskari from template for `embedded-3d`
+  copy:
+    src: ../templates/oskari_lang_id.js
+    dest: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded-3d/oskari_lang_id.js"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `oskari_lang_in.js` file for Oskari from template for `embedded-3d`
+  copy:
+    src: ../templates/oskari_lang_in.js
+    dest: "{{ install_dir_oskari }}/oskari-server/sample-application/dist/{{ oskari_client_version }}/embedded-3d/oskari_lang_in.js"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy `userguide.html` file for Oskari from template
+  copy:
+    src: ../templates/userguide.html
+    dest: "{{ install_dir_oskari }}/oskari-server/resources/articlesByTag/userguide.html"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Create Oskari PostgreSQL user `{{ oskari_db.username }}` ({{ oskari_db.role_attr_flags }})"
+  become: true
+  become_user: postgres
+  postgresql_user:
+    name: "{{ oskari_db.username }}"
+    password: "{{ oskari_db.password }}"
+    role_attr_flags: "{{ oskari_db.role_attr_flags }}"
+
+- name: "Create Oskari PostgreSQL database `{{ oskari_db.name }}`"
+  become: true
+  become_user: postgres
+  postgresql_db:
+    name: "{{ oskari_db.name }}"
+    encoding: UTF-8
+    template: template0
+    owner: "{{ oskari_db.username }}"
+
+- name: Enable PostGIS extension on Oskari database
+  become: true
+  become_user: postgres
+  become_method: sudo
+  shell: |
+    psql -d {{ oskari_db.name }} -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
+    psql -d {{ oskari_db.name }} -c "ALTER VIEW geometry_columns OWNER TO {{ oskari_db.username }};"
+    psql -d {{ oskari_db.name }} -c "ALTER TABLE spatial_ref_sys OWNER TO {{ oskari_db.username }};"
+    psql -d {{ oskari_db.name }} -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO {{ oskari_db.username }};"
+    exit
+
+- name: Install the `tomcat8` package for GeoServer
+  package:
+    name: tomcat8
+    state: latest
+
+- name: Set `JAVA_HOME` environment variable for Tomcat
+  lineinfile:
+    dest: /etc/default/tomcat8
+    line: JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+    state: present
+
+- name: Copy `setenv.sh` script for Tomcat from template
+  template:
+    src: ../templates/setenv.sh.j2
+    dest: /usr/share/tomcat8/bin/setenv.sh
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Create GeoServer PostgreSQL user `{{ geoserver_db.username }}` ({{ geoserver_db.role_attr_flags }})"
+  become: true
+  become_user: postgres
+  postgresql_user:
+    name: "{{ geoserver_db.username }}"
+    password: "{{ geoserver_db.password }}"
+    role_attr_flags: "{{ geoserver_db.role_attr_flags }}"
+
+- name: "Create GeoServer PostgreSQL database `{{ geoserver_db.name }}`"
+  become: true
+  become_user: postgres
+  postgresql_db:
+    name: "{{ geoserver_db.name }}"
+    encoding: UTF-8
+    template: template0
+    owner: "{{ geoserver_db.username }}"
+
+- name: Enable PostGIS extension on GeoServer database
+  become: true
+  become_user: postgres
+  become_method: sudo
+  shell: |
+    psql -d {{ geoserver_db.name }} -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
+    psql -d {{ geoserver_db.name }} -c "ALTER VIEW geometry_columns OWNER TO {{ geoserver_db.username }};"
+    psql -d {{ geoserver_db.name }} -c "ALTER TABLE spatial_ref_sys OWNER TO {{ geoserver_db.username }};"
+    psql -d {{ geoserver_db.name }} -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO {{ geoserver_db.username }};"
+    exit
+
+- name: "Check if `{{ geoserver_war_archive }}` is already downloaded in `{{ working_dir }}`"
+  stat:
+    path: "{{ working_dir }}/{{ geoserver_war_archive }}"
+  register: geoserver_war_archive_stat
+
+- name: "Download GeoServer {{ geoserver_version }} from `{{ geoserver_war_archive_url }}` to `{{ working_dir }}` (only if `{{ working_dir }}/{{ geoserver_war_archive }}` file does not exist)"
+  get_url:
+    url: "{{ geoserver_war_archive_url }}"
+    dest: "{{ working_dir }}/{{ geoserver_war_archive }}"
+    force: false
+    mode: 0644
+  when: geoserver_war_archive_stat.stat.exists == false
+
+- name: "Ensure `{{ working_dir }}/geoserver` exists"
+  file:
+    path: "{{ working_dir }}/geoserver"
+    state: directory
+
+- name: "Extract `{{ geoserver_war_archive }}` to `{{ working_dir }}/geoserver`"
+  unarchive:
+    src: "{{ working_dir }}/{{ geoserver_war_archive }}"
+    dest: "{{ working_dir }}/geoserver"
+    creates: "{{ working_dir }}/geoserver/geoserver.war"
+
+- name: "Check if bundled GeoServer directory exists in `{{ install_dir_oskari }}/oskari-server/webapps`"
+  stat:
+    path: "{{ install_dir_oskari }}/oskari-server/webapps/geoserver"
+  register: bundled_geoserver_directory
+
+- name: "Remove bundled GeoServer from Oskari to replace it with external GeoServer {{ geoserver_version }} on port {{ geoserver_port }}"
+  command: "mv {{ install_dir_oskari }}/oskari-server/webapps/geoserver {{ install_dir_oskari }}/oskari-server"
+  when: bundled_geoserver_directory.stat.exists == true
+
+- name: Deploy `geoserver.war` to Tomcat webapps directory and wait until it is fully extracted
+  shell: |
+    mv {{ working_dir }}/geoserver/geoserver.war /var/lib/tomcat8/webapps/
+    sleep 20
+    exit
+
+- name: Temporarily stop Tomcat service
+  service:
+    name: tomcat8
+    state: stopped
+
+- name: Copy Oskari server extensions to external GeoServer
+  shell: |
+    cp {{ install_dir_oskari }}/oskari-server/geoserver/WEB-INF/lib/{{ item }} /var/lib/tomcat8/webapps/geoserver/WEB-INF/lib/
+    chown tomcat8:tomcat8 /var/lib/tomcat8/webapps/geoserver/WEB-INF/lib/{{ item }}
+    chmod o-r /var/lib/tomcat8/webapps/geoserver/WEB-INF/lib/{{ item }}
+    exit
+  with_items:
+    - OskariMarkFactory-1.48.0-SNAPSHOT.jar
+    - IntersectionFeatureCollection2-2.13.2.jar
+    - oskari_point_stacker-2.7.1.jar
+    - ZoneSectorFeatureCollection-2.13.2.jar
+    - serializer-2.7.1.jar
+    - net.opengis.wps-19.2.jar
+    - gt-xsd-wps-19.2.jar
+    - gt-process-geometry-19.2.jar
+    - gs-wps-core-2.13.2.jar
+    - gs-web-wps-2.13.2.jar
+
+- name: "[FIX] Copy bundled GeoServer data directory to `/var/lib/tomcat8/webapps/geoserver` to initialize external GeoServer for Oskari"
+  shell: |
+    mv /var/lib/tomcat8/webapps/geoserver/data /var/lib/tomcat8/webapps/geoserver/data_orig
+    cp -avr {{ install_dir_oskari }}/oskari-server/geoserver_data /var/lib/tomcat8/webapps/geoserver
+    chown -R tomcat8:tomcat8 /var/lib/tomcat8/webapps/geoserver/geoserver_data
+    find /var/lib/tomcat8/webapps/geoserver/geoserver_data -type f -exec chmod 640 {} \;
+    find /var/lib/tomcat8/webapps/geoserver/geoserver_data -type d -exec chmod 750 {} \;
+    mv /var/lib/tomcat8/webapps/geoserver/geoserver_data /var/lib/tomcat8/webapps/geoserver/data
+    exit
+
+- name: "Change Tomcat to listen from port 8080 to port {{ geoserver_port }}"
+  lineinfile:
+    dest: /etc/tomcat8/server.xml
+    regexp: '<Connector port="8080" protocol="HTTP\/1\.1"$'
+    line: '<Connector port="{{ geoserver_port }}" protocol="HTTP/1.1"'
+    state: present
+
+- name: Start and enable Tomcat service
+  service:
+    name: tomcat8
+    state: started
+    enabled: yes
+
+# - name: "Install cron job to run Oskari on @reboot"
+  # cron:
+    # name: "start oskari"
+    # state: present
+    # special_time: reboot
+    # job: "cd {{ install_dir_oskari }}/oskari-server && java -jar ../jetty-distribution-9.4.12.v20180830/start.jar >> /var/log/oskari_server.log 2>&1"
+
+- name: "Copy `jetty.service` systemd unit file for Oskari from template"
+  template:
+    src: ../templates/jetty.service.j2
+    dest: /etc/systemd/system/jetty.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: enable Jetty service for Oskari to start on boot
+  systemd:
+    name: jetty
+    enabled: yes

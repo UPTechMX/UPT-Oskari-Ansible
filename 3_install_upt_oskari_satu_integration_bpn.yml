@@ -1,0 +1,10 @@
+---
+- name: Install UPT-GUI and UPT-Server-Extension for Oskari-CKAN Integration (SatuDataPortal)
+  hosts: all
+  become: true
+
+  vars_files: 
+    - vars_system.yaml
+
+  roles:
+    - upt_satu
