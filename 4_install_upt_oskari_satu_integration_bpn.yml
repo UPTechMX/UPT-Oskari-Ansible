@@ -5,6 +5,7 @@
 
   vars_files: 
     - vars_system.yml
+    - vars_oskari.yml
 
   roles:
     - upt_satu
