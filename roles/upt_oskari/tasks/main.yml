@@ -81,22 +81,6 @@
     sudo npm install
     exit
 
-- name: Building the UPT-GUI for SatuDataportal
-  shell: |
-    cd {{ oskari_dir }}/UPT-GUI
-    sudo ng build --prod --output-hashing none
-    exit
-
-- name: Copy build artifacts to oskari-frontend
-  shell: |
-    cp -r {{ oskari_dir }}/UPT-GUI/dist/PLID {{ oskari_dir }}/oskari-application-bpn/dist/wbidp/geoportal
-
-- name: Run npm install for UPT-GUI dependencies
-  shell: |
-    cd {{ oskari_dir }}/UPT-GUI
-    sudo npm install
-    exit
-
 - name: Building the UPT-GUI for Oskari
   shell: |
     cd {{ oskari_dir }}/UPT-GUI
