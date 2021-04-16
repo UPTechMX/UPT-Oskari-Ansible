@@ -71,7 +71,7 @@
   environment:
     PGPASSWORD: '{{ oskari_db_pw }}'
   shell: |
-    psql -h localhost -U oskari -f /opt/oskari/oskari-server/UPT-Server-Extension/app-resources/src/main/resources/flyway/example/run-upt-scripts.sql
+    psql -h localhost -U oskari -f /opt/oskari/oskari-server/UPT-Server-Extension/app-resources/src/main/resources/flyway/example/run-upt-scripts.sql -d oskaridb
 - name: Build oskari-map.war file
   shell: |
     cd {{ oskari_dir }}/UPT-Server-Extension
