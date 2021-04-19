@@ -1,0 +1,5 @@
+---
+- import_playbook: 1_install_postgresql.yml
+- import_playbook: 2_install_oskari.yml
+- import_playbook: 3_install_oskari_development.yml
+- import_playbook: 4_install_upt_oskari_only.yml
