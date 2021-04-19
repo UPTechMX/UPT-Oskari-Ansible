@@ -77,7 +77,7 @@
 - name: Run npm install for UPT-GUI dependencies
   shell: |
     cd {{ oskari_dir }}/UPT-GUI
-    git checkout satu-integration
+    git checkout master
     sudo npm install
     exit
 
