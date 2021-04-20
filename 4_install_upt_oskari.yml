@@ -4,7 +4,7 @@
   become: true
 
   vars_files: 
-    - vars_system.yml
+    - vars_upt.yml
     - vars_oskari.yml
 
   roles:

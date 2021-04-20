@@ -2,6 +2,5 @@
 ###############
 #  System vars
 ###############
-user: root
 oskari_dir: /opt/oskari/oskari-server
 oskari_db_pw: oskari
