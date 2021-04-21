@@ -53,7 +53,7 @@ SSH to the target server and perform the following steps:
   cd /opt
   # become root user
   sudo su
-  git clone https://github.com/UPTechMX/UPT-Oskari-Ansible
+  git clone https://github.com/UPTechMX/UPT-Oskari-Ansible.git
   cd UPT-Oskari-Ansible
   ```
 * Configure the mandatory playbook variables
