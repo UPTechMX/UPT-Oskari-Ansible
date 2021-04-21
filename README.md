@@ -53,8 +53,8 @@ SSH to the target server and perform the following steps:
   cd /opt
   # become root user
   sudo su
-  git clone https://github.com/geoenvo/ansible-onedataportal.git
-  cd ansible-onedataportal
+  git clone https://github.com/UPTechMX/UPT-Oskari-Ansible
+  cd UPT-Oskari-Ansible
   ```
 * Configure the mandatory playbook variables
   * ```nano vars_postgresql.yml```
