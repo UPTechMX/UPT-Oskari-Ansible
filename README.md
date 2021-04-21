@@ -71,7 +71,7 @@ SSH to the target server and perform the following steps:
     oskari_db_pw: password for oskari user in oskaridb database
     ```
 * Configure `oskari-ext.properties.j2` to direct to Distance/UrbanPerformance modules
-  *```nano roles/upt_oskari/oskari-ext.properties.j2```
+  * ```nano roles/upt_oskari/oskari-ext.properties.j2```
   ```
   # Change the following to the appropriate settings: OSKARI_PW, IP_ADDRESS_FOR_UP_BACKEND, PORT_FOR_UP_BACKEND, IP_ADDRESS_FOR_DISTANCES_BACKEND, PORT_FOR_DISTANCES_BACKEND. upws refers to the UrbanPerformance module. stws refers to the Distance module.
 
