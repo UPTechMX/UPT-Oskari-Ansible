@@ -94,7 +94,7 @@ SSH to the target server and perform the following steps:
         cd /opt/ansible-onedataportal
         # become root user
         sudo su
-        ansible-playbook -K -i inventory full_install.yml
+        ansible-playbook -K -i inventory install_oskari.yml
           BECOME password: enter the user's sudo password
         ```
     * Or one by one
@@ -108,7 +108,6 @@ SSH to the target server and perform the following steps:
         ansible-playbook -K -i inventory 1_install_postgresql.yml
         ansible-playbook -K -i inventory 2_install_oskari.yml
         ansible-playbook -K -i inventory 3_install_oskari_development.yml
-        ansible-playbook -K -i inventory 4_install_upt_oskari.yml
         ```
 * Some manual configuration might be needed to achieve the following (this is optional):
   * Configure firewall to further secure the server
@@ -118,6 +117,11 @@ SSH to the target server and perform the following steps:
 * Reboot the server
   ```
   sudo reboot
+  ```
+* Install UPT-GUI and UPT-Server-Extension
+  ```
+  ansible-playbook -K -i inventory 4_install_upt_oskari.yml
+    BECOME password: enter the user's sudo password
   ```
 * Access the Oskari at the server's IP address or domain name on a web browser:
   * Oskari Geoportal at http://the.server.ip.address:8080
